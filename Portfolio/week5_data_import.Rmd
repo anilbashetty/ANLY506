@@ -1,0 +1,190 @@
+---
+title: "Data Import"
+author: "Anil Bashetty"
+date: "April 14, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data import
+
+## Loading libraries
+
+```{r results='hide',message=FALSE}
+library("tidyverse")
+```
+
+## Reading CSV files 
+
+### Reading csv file from the place where file is located by using read_csv() function
+
+```{r eval=FALSE}
+week5 <- read_csv("D:/Harrisburg University/Spring-2019/Exploratory Data Analysis/week-5/week5.csv")
+# Prints out a schema that gives the name and type of each column
+```
+
+# Create an inline csv file
+# read_csv function takes the first line as column names, if not specified
+```{r}
+read_csv("A,B,C 
+          a,b,c
+          1,2,3")
+```
+
+# If we use skip = n, then it will skip the first n lines of metadata;
+```{r}
+read_csv("A,B,C 
+          a,b,c
+          1,2,3", skip = 1)
+```
+
+# If data does not have column names, then set col_names = FALSE in read_csv() to auto-name columns
+```{r}
+read_csv("1,2,3\n4,5,6", col_names = FALSE)
+```
+
+# If you want to set our own column names
+```{r}
+read_csv("1,2,3\n4,5,6", col_names = c("col1", "col2", "col3"))
+```
+
+# Option na - It is used to specify missing values in the csv file
+```{r}
+read_csv("1,2,3\n4,5,.", na = ".")
+```
+
+## CSV Exercise
+### What function would you use to read a file where fields were separated with "|"?
+```{r eval=FALSE}
+read_delim(file, delim = "|")
+```
+
+### Apart from file, skip, and comment, what other arguments do read_csv() and read_tsv() have in common?
+```{r}
+union(names(formals(read_csv)), names(formals(read_tsv)))
+```
+
+### What are the most important arguments to read_fwf()? This function is used for col_positions, it specifies where data columns begin and end.
+
+### Sometimes strings in a CSV file contain commas. To prevent them from causing problems they need to be surrounded by a quoting character, like " or '. By convention, read_csv() assumes that the quoting character will be ", and if you want to change it you'll need to use read_delim() instead. What arguments do you need to specify to read the following text into a data frame?
+### x,y\n1,'a,b'" 
+```{r}
+x <- "x,y\n1,'a,b'"
+read_delim(x, ",", quote = "'")
+read_csv(x, quote = "'")
+
+```
+
+### Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+#### Last column is dropped with ony 2 columns in header
+
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6")
+
+```
+
+#### Row 1 - column c is missed
+#### Row 2 - Last value is dropped
+```{r}
+read_csv("a,b,c\n1,2\n1,2,3,4")
+
+```
+
+#### Field separator used as ";" instead of ","
+```{r}
+read_csv("a;b\n1;3")
+
+```
+
+## Parsing a vector
+
+### Below functions take a character vector and return a more specific vector like a logical, integer, or date
+
+```{r}
+str(parse_logical(c("TRUE", "FALSE", "NA")))
+
+str(parse_integer(c("1", "2", "3")))
+
+str(parse_date(c("2010-01-01", "1979-10-14")))
+
+```
+
+### Parsing Numbers
+
+```{r}
+parse_double("1.23")
+
+parse_double("1,23", locale = locale(decimal_mark = ","))
+
+parse_number("$100")
+
+parse_number("20%")
+
+parse_number("It cost $123.45")
+
+```
+
+### Parsing a string
+#### Getting the underlying representation of a string using charToRaw()
+#### Specifing the character encoding type in parse_character() function
+```{r}
+charToRaw("Hadley")
+x1 <- "El Ni\xf1o was particularly bad this year"
+parse_character(x1, locale = locale(encoding = "Latin1"))
+
+```
+
+### Parsing Factors
+#### Use parse_factor() a vector of known levels to generate a warning whenever an unexpected value is present
+```{r}
+fruit <- c("apple", "banana")
+parse_factor(c("apple", "banana", "bananana"), levels = fruit)
+
+```
+
+### Parsing Dates / Date-Times / Times
+
+```{r}
+#### If time is omitted, it will be set to midnight
+parse_datetime("2010-10-01T2010")
+
+parse_datetime("20101010")
+
+#### parse_date() expects a four digit year, a - or /, the month, a - or /, then the day
+parse_date("2010-10-01")
+
+#### parse_time() expects the hour, :, minutes, optionally : and seconds, and an optional am/pm specifier
+parse_time("01:10 am")
+parse_time("20:10:01")
+
+```
+### Writing to a file
+
+```{r eval=FALSE}
+write_csv(challenge, "challenge.csv")
+#### Note always, it uses UTF-8 encoding
+
+```
+
+### Uniform Wrappers
+
+```{r eval=FALSE}
+#### write_rds() and read_rds() are uniform wrappers around the base functions readRDS() and saveRDS()
+
+write_rds(challenge, "challenge.rds")
+read_rds("challenge.rds")
+
+```
+
+### Feather Package
+
+```{r eval=FALSE}
+#### feather package implements a fast binary file format that can be shared across programming languages
+
+write_feather(challenge, "challenge.feather")
+read_feather("challenge.feather")
+
+```
