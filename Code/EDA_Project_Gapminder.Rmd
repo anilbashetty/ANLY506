@@ -9,6 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Stash Details
+```{r}
+# .Rmd file location in Stash repo: https://github.com/anilbashetty/ANLY506/blob/master/Code/EDA_Project_Gapminder.Rmd
+
+```
 ## Questions
 
 ```{r}
