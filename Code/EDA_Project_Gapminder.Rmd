@@ -1,0 +1,222 @@
+---
+title: "EDA_Project_Gapminder"
+author: "Anil Bashetty"
+date: "April 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Questions
+
+```{r}
+# As a Data Analyst, i would like to know below from dataset:
+
+# Which region had best standard living and income in the year of 1800?
+# For "Europe & Central Asia" region - which country had more life tenure and more income?
+# Plot the life tenure of Iceland country population over the years?
+# Plot the life tenure of regions over the years?
+# Identify factors or reason behind why each region has distinct life tenure?
+# Find out why life tenure of "Middle East & North Africa" is less when compared with other regions?
+
+```
+
+## Data Description
+
+```{r}
+### Dataset Name: Gapminder
+### Source: https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv
+### Fields: Country,Year,life,population,income,region
+### Number of Rows and Columns: 41284 rows and 6 columns
+
+```
+
+## Libraries Required
+```{r message=FALSE, warning=FALSE}
+library(readr) # Used for loading input files
+library(dplyr) # Used for data manipulation.
+library(ggplot2) # Used for data visualization
+library(tidyverse) # Used for analyzing data and underlying data structures
+
+```
+
+```{r, message=FALSE}
+# Import data
+gap <- read_csv("C:/Users/anilb/Documents/GitHub/ANLY506/Data/gapminder.csv")
+
+# Remove spaces if there are any around column names
+names(gap) <- make.names(names(gap))
+```
+
+## Dimensions
+
+```{r}
+# number of rows and columns
+dim(gap)
+```
+
+## Head and Tail of data
+
+```{r}
+# Head
+head(gap)
+
+# Tail
+tail(gap)
+## There are few NA values in the dataset by looking at tail of the data
+```
+
+## Data types
+```{r}
+# Data types of the dataset
+str(gap)
+```
+
+
+## Basic Stats
+```{r}
+# Basic stats of the dataset
+summary(gap)
+## With provided summary, gapminder dataset has data from year 1800 to 2015, income minimum is 142 and maximum is 182668. Four fields has NA's and among four fields, population and income are having 25818 and 2342 NA's respectively. With NA's available in the dataset, it might affect overall accurate analysis outcome.
+```
+
+## Descriptive Statistics
+```{r}
+mean(gap$income, na.rm = TRUE) # This tells the mean of income by removing NA's
+min(gap$income, na.rm = TRUE) # This tells the min of income by removing NA's
+max(gap$income, na.rm = TRUE) # This tells the max of income by removing NA's
+median(gap$income, na.rm = TRUE) # This tells the median of income by removing NA's
+IQR(gap$income, na.rm = TRUE) # Difference of upper and lower quartile
+```
+
+## Countries
+```{r}
+# unique countries in the dataset
+countries <- unique(gap$Country)
+length(countries)
+## Gapminder dataset has data of 198 unique countries
+```
+
+## Regions
+```{r}
+# unique regions in the dataset
+regions <- unique(gap$region)
+length(regions)
+## Gapminder dataset has data of 6 unique regions
+```
+
+## Filters
+```{r}
+#filter the gapminder dataset for year 1800
+gap1800 <- gap %>% filter(Year == 1800)
+gap1800
+
+```
+
+## Q1 - Which region had best standard living and income in the year of 1800?
+### By income
+```{r}
+head(
+  gap1800  %>% 
+  select(region, life, income) %>% 
+  arrange(desc(income)) , 1)
+
+```
+### By life tenure
+```{r}
+head(
+  gap1800  %>% 
+  select(region, life, income) %>% 
+  arrange(desc(life)) , 1)
+
+## For the year 1800, "Europe & Central Asia" region had more income than compared to other regions. And the same region had more life tenure as well when compared with other regions.
+
+```
+
+## Q2 - For "Europe & Central Asia" region - which country had more life tenure and more income?
+### For income
+```{r}
+head(
+  gap1800  %>% filter(region=="Europe & Central Asia") %>% 
+  select(region, Country, life, income) %>% 
+  arrange(desc(income)) , 1)
+
+```
+### For life tenure
+```{r}
+head(
+  gap1800  %>% filter(region=="Europe & Central Asia") %>% 
+  select(region, Country, life, income) %>% 
+  arrange(desc(life)) , 1)
+
+## For the year 1800, IN "Europe & Central Asia" region, Netherlands had more income than compared to any other country in that region. And Iceland country had more life tenure when compared to other countries in the region.
+
+```
+
+## Q3 - Plot the life tenure of Iceland country population over the years?
+### Iceland population plot
+```{r}
+lifeTenureIceland <-gap %>% filter(Country=="Iceland") %>%
+            ggplot() +
+            geom_step(mapping = aes(x = Year,y = life),linetype=1,color='green') +
+            ggtitle("Life Tenure of Iceland Country over the years") +
+            labs(y="Life Tenure", x="Year")  
+lifeTenureIceland
+## From the plot, it indicates that for the period 1800-1900, there are lower and upper spikes, meaning life tenure drastically reduced and increased in-between. From 1901-1950 there was slight decrease and increase. However from year 1950 to 2015, there was constant raise in life tenure of Iceland country population, which means they had lived longer life.
+```
+
+## Q4 - Plot the life tenure of regions over the years?
+### Life tenure of all regions plot
+```{r}
+lifeTenureRegions <- gap %>% filter(!is.na(life)) %>% filter(!is.na(region)) %>% arrange(life) %>%
+              ggplot(data = gap,mapping = aes(x =region,y=life,color = region)) +
+              geom_boxplot(outlier.colour = "red", outlier.shape = 2) +
+              coord_flip() +
+              ggtitle("Life Tenure across all regions between 1800 to 2015") +
+              labs(y="Life Tenure", x="Region")
+lifeTenureRegions
+## From the plot, it indicates that "Europe & Central Asia had better life tenure across the years. Whereas, "South Asia" and "Sub-Saharan Africa" has outliers (deviates from traditional life tenure). 
+```
+
+## Q5 - Identify factors or reason behind why each region has distinct life tenure?
+```{r}
+populationDensityRegion <-gap %>% filter(!is.na(population)) %>% arrange(population) %>%
+            ggplot() +
+            geom_step(mapping = aes(x = population,y = region),linetype=1,color='blue') +
+            ggtitle("Population density in each region") +
+            labs(y="Region", x="Population")  
+populationDensityRegion
+
+IncomeRegion <-gap %>% filter(!is.na(income)) %>% arrange(income) %>%
+            ggplot() +
+            geom_step(mapping = aes(x = income,y = region),linetype=1,color='blue') +
+            ggtitle("Income of population in each region") +
+            labs(y="Region", x="income")  
+IncomeRegion
+
+## From the plots, it indicates that "Europe & Central Asia" region is the second lowest in terms of population density across years and third highest income yielding region. Which means, population wise "Europe and Central Asia" region had less and significant income to survive which is why that region had better life tenure. However, by looking at the plots "Middle East & North Africa" had less population density than compared to any other region but income was way higher than any other region. Ideally "Middle East & North Africa" region should have better life tenure, but it is not. Let's find out why?
+
+```
+
+## Q6 - Find out why life tenure of "Middle East & North Africa" is less when compared with other regions?
+
+```{r}
+lifeTenureMiddleEastnNorthAfrica <-gap %>% filter(region=="Middle East & North Africa") %>%
+            ggplot() +
+            geom_step(mapping = aes(x = life,y = Country),linetype=1,color='green') +
+            ggtitle("Life Tenure of Countries over the years in Middle East & North Africa region") +
+            labs(y="Country", x="Life Tenure")  
+lifeTenureMiddleEastnNorthAfrica
+
+## From the plots, it indicates that "Middle East & North Africa" region has four countries where the life tenure is below 20. There is one country, "Tunisia" has life tenure below 5.
+
+```
+
+## Conclusion
+```{r}
+### Performed exploratory data analysis by utilizing data visulaization libraries to arrive at this point.
+#### In the year 1800, "Europe & Central Asia" region had highest income than compared to any other regions. And the same region had more life tenure as well when compared with other regions. In Europe & Central Asia" region, Netherlands had more income than compared to any other country in that region. And Iceland country had more life tenure when compared to other countries in the region. Hwoever, when i find out the life tenure of Iceland country across all years, found out interesting metrics which are: during period 1800-1900, there are indistinct spikes, meaning life tenure drastically reduced and increased in-between, during 1901-1950 there was slight decrease and increaseand during 1950 to 2015, there was constant raise in life tenure of Iceland country population, which means they had a longer life tenure. Interesting insights found out when i tried to further analyze life tenure of all regions, "South Asia" and "Sub-Saharan Africa" regions had outliers and "MIddle East & North Africa" region had very less population and high income but life tenure wasn't matching with expectation. Digged through data to further undertand why it happened and found out that due to certain countries like "Tunisia", "Western Sahara", "Djibouti" and "Algeria" had life tenure less than 20 years.
+
+```
